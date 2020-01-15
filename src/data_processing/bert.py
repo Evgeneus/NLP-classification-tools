@@ -25,6 +25,9 @@ class BERT:
         # Tokenize a sentence with the BERT tokenizer.
         tokenized_text = self.tokenizer.tokenize(marked_text)
 
+        # Fix the number of tokens to 512 (defined by BERT model)
+        tokenized_text = tokenized_text[:511] + [tokenized_text[-1]]
+
         # Map the token strings to their vocabulary indeces.
         indexed_tokens = self.tokenizer.convert_tokens_to_ids(tokenized_text)
 
