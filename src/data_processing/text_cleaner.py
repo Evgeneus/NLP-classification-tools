@@ -1,4 +1,4 @@
-from nltk.corpus import stopwords
+# from nltk.corpus import stopwords
 from nltk.stem.porter import PorterStemmer
 from nltk.stem import WordNetLemmatizer
 import nltk
@@ -14,7 +14,7 @@ punctuation = set([',', '.', '"', ':', ')', '(', '-', '!', '?', '|', ';', "'", '
                    '╦', '╣', '╔', '╗', '▬', '❤', 'ï', 'Ø', '¹', '≤', '‡', '√', "``", "''"])
 
 # english contractions
-contraction_dict = {"ain't": "is not", "aren't": "are not", "can't": "cannot", "'cause": "because",
+contraction_dict = {"ain't": "is not", "aren't": "are not", "can't": "can not", "'cause": "because",
                      "could've": "could have", "couldn't": "could not", "didn't": "did not",
                      "doesn't": "does not", "don't": "do not", "hadn't": "had not", "hasn't": "has not",
                      "haven't": "have not", "he'd": "he would", "he'll": "he will", "he's": "he is",
@@ -50,7 +50,20 @@ contraction_dict = {"ain't": "is not", "aren't": "are not", "can't": "cannot", "
                      "y'all'd": "you all would", "y'all'd've": "you all would have",
                      "y'all're": "you all are", "y'all've": "you all have", "you'd": "you would",
                      "you'd've": "you would have", "you'll": "you will", "you'll've": "you will have",
-                     "you're": "you are", "you've": "you have"}
+                     "you're": "you are", "you've": "you have", "don't": "do not"}
+
+# English stopwords  but not including 'not'-ish words (for sentiment clf reason)
+stop_words = set(['i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', "you are", "you have", "you will",
+              "you would", 'your', 'yours', 'yourself', 'yourselves', 'he', 'him', 'his', 'himself', 'she', "she is",
+              'her', 'hers', 'herself', 'it', "it is", 'its', 'itself', 'they', 'them', 'their', 'theirs', 'themselves',
+              'what', 'which', 'who', 'whom', 'this', 'that', "that'll", 'that will', 'these', 'those', 'am', 'is',
+              'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'having', 'do', 'does', 'did', 'doing',
+              'a', 'an', 'the', 'and', 'but', 'if', 'or', 'because', 'as', 'until', 'while', 'of', 'at', 'by', 'for',
+              'with', 'about', 'between', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'to',
+              'from', 'up', 'down', 'in', 'on', 'over', 'under', 'again', 'further', 'then', 'once', 'here',
+              'there', 'when', 'where', 'why', 'how', 'all', 'any', 'both', 'each', 'few', 'more', 'most', 'other',
+              'some', 'such', 'nor', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 's', 't', 'can',
+              'will', 'just', 'do', 'should', "should have", 'now', 'd', 'll', 'm', 'o', 're', 've', 'y', 'ain', 'ma'])
 
 
 class Cleaner:
@@ -99,19 +112,19 @@ class Cleaner:
 
     def clean_basics(self, x):
         x = [word.strip() for word in nltk.word_tokenize(x.lower())
-             if (word not in self.punctuation) and (word not in stopwords.words("english"))]
+             if (word not in self.punctuation) and (word not in stop_words)]
 
         return x
 
     def clean_and_lemmatize(self, x):
         x = [self.wordnet_lemmatizer.lemmatize(word.strip()) for word in nltk.word_tokenize(x.lower())
-             if (word not in self.punctuation) and (word not in stopwords.words("english"))]
+             if (word not in self.punctuation) and (word not in stop_words)]
 
         return x
 
     def clean_and_stem(self, x):
         x = [self.porter.stem(word.strip()) for word in nltk.word_tokenize(x.lower())
-             if (word not in self.punctuation) and (word not in stopwords.words("english"))]
+             if (word not in self.punctuation) and (word not in stop_words)]
 
         return x
 
