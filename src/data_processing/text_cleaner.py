@@ -1,7 +1,9 @@
 # from nltk.corpus import stopwords
+import nltk
 from nltk.stem.porter import PorterStemmer
 from nltk.stem import WordNetLemmatizer
-import nltk
+from bs4 import BeautifulSoup
+import unicodedata
 import re
 
 # punctuation marks to be removed
@@ -76,6 +78,10 @@ class Cleaner:
         - remove english stopwords
         - words lemmatization
         - words stemming
+        - strip html
+        - removing accented characters
+        - substitute URLs
+        - substitute usernames
 
     # Example for cleaning text
     >>>text = 'At 63 1/2 months old my baby is walking.'
@@ -94,6 +100,17 @@ class Cleaner:
         self.contraction_dict = contraction_dict
         self.contraction_re = re.compile('(%s)' % '|'.join(self.contraction_dict.keys()))
 
+    def strip_html_tags(self, x):
+        soup = BeautifulSoup(x, "html.parser")
+        x_stripped = soup.get_text()
+
+        return x_stripped
+
+    def remove_accented_chars(self, x):
+        x = unicodedata.normalize('NFKD', x).encode('ascii', 'ignore').decode('utf-8', 'ignore')
+
+        return x
+
     def clean_numbers(self, x):
         if bool(re.search(r'\d', x)):
             x = re.sub('[0-9]{5,}', 'num5', x)
@@ -111,25 +128,38 @@ class Cleaner:
         return self.contraction_re.sub(replace, x)
 
     def clean_basics(self, x):
-        x = [word.strip() for word in nltk.word_tokenize(x.lower())
+        x = [word.strip() for word in nltk.word_tokenize(x)
              if (word not in self.punctuation) and (word not in stop_words)]
 
         return x
 
     def clean_and_lemmatize(self, x):
-        x = [self.wordnet_lemmatizer.lemmatize(word.strip()) for word in nltk.word_tokenize(x.lower())
+        x = [self.wordnet_lemmatizer.lemmatize(word.strip()) for word in nltk.word_tokenize(x)
              if (word not in self.punctuation) and (word not in stop_words)]
 
         return x
 
     def clean_and_stem(self, x):
-        x = [self.porter.stem(word.strip()) for word in nltk.word_tokenize(x.lower())
+        x = [self.porter.stem(word.strip()) for word in nltk.word_tokenize(x)
              if (word not in self.punctuation) and (word not in stop_words)]
 
         return x
 
     def clean_text(self, x):
+        # strip html
+        x = self.strip_html_tags(x)
+        # make text lower case
+        x = x.lower()
+        # remove accented characters
+        x = self.remove_accented_chars(x)
+        # substitute URLs
+        x = re.sub('((www\.[^\s]+)|(https?://[^\s]+)|(http?://[^\s]+))', 'url_', x)
+        x = re.sub(r'http\S+', 'url_', x)
+        # substitute usernames
+        x = re.sub('@[^\s]+', 'mention_', x)
+        # replace contractions
         x = self.replace_contractions(x)
+        # clean numbers
         x = self.clean_numbers(x)
         if self.with_lematz is False and self.with_stemming is False:
             x = self.clean_basics(x)
